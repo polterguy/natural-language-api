@@ -30,8 +30,6 @@ hyper2lambda:x:@execute/*/answer
 // Adding lambda object to [whitelist] invocation.
 add:x:./*/whitelist/*/.lambda
    get-nodes:x:@hyper2lambda/*
-lambda2hyper:x:../*/whitelist
-log.info:x:-
 
 // Executing lambda object, and returning the result.
 whitelist
