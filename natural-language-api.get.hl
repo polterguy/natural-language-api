@@ -20,7 +20,7 @@ try
       name:openai-query
       filename:/modules/openai/workflows/actions/openai-query.hl
       arguments
-         model:"ft:gpt-4.1-mini-2025-04-14:ainiro:hl:CgrJqwb2"
+         model:"ft:gpt-4.1-mini-2025-04-14:ainiro:hl:CgvydMGP"
          max_tokens:int:2500
          temperature:decimal:0.0
          query:x:@.arguments/*/instruction
@@ -29,108 +29,127 @@ try
    // Transforming result to a lambda object.
    hyper2lambda:x:@execute/*/answer
 
-   // Adding lambda object to [whitelist] invocation.
-   add:x:./*/whitelist/*/.lambda
-      get-nodes:x:@hyper2lambda/*
-
-   // Executing lambda object, and returning the result.
-   whitelist
-      vocabulary
-         date.now
-         date.format
-         format
-         set-name
-         set-value
-         get-value
-         get-name
-         get-count
-         get-nodes
-         add
-         insert-after
-         insert-before
-         math.abs
-         math.add
-         math.ceil
-         math.cos
-         math.decrement
-         math.divide
-         math.floor
-         math.increment
-         math.max
-         math.min
-         math.modulo
-         math.multiply
-         math.random
-         math.round
-         math.sin
-         math.sqrt
-         math.subtract
-         strings.builder
-         strings.builder.append
-         strings.byte-count
-         strings.capitalize
-         strings.concat
-         strings.contains
-         strings.ends-with
-         strings.html-decode
-         strings.html-encode
-         strings.join
-         strings.length
-         strings.matches
-         strings.regex-replace
-         strings.replace
-         strings.replace-not-of
-         strings.split
-         strings.starts-with
-         strings.substring
-         strings.to-lower
-         strings.to-upper
-         strings.trim
-         strings.trim-end
-         strings.trim-start
-         strings.url-decode
-         strings.url-encode
-         response.headers.set
-         response.status.set
-         for-each
-         if
-         else-if
-         else
-         return
-         return-nodes
-         yield
-         vocabulary
-         html2lambda
-         html2markdown
-         lambda2html
-         markdown2html
-         xml2lambda
-         lambda2xml
-         json2lambda
-         lambda2json
-         http.get
-         and
-         or
-         eq
-         neq
-         not
-         mt
-         lt
-         mte
-         lte
-         get-name
-         null
-         not-null
-         exists
-         not-exists
-         unwrap
-         convert
-      .lambda
+   // Checking if user is root, at which point we just execute "whatever"
    if
-      not-null:x:@whitelist
+      auth.ticket.in-role:root
       .lambda
-         return:x:@whitelist
-   return-nodes:x:@whitelist/*
+
+         // Adding lambda object to [.lambda] invocation.
+         add:x:./*/.lambda
+            get-nodes:x:@hyper2lambda/*
+
+         // Executing lambda object, and returning the result.
+         .lambda
+         invoke:x:-
+         if
+            not-null:x:@invoke
+            .lambda
+               return:x:@invoke
+         return-nodes:x:@invoke/*
+
+   else
+
+      // Adding lambda object to [whitelist] invocation.
+      add:x:./*/whitelist/*/.lambda
+         get-nodes:x:@hyper2lambda/*
+
+      // Executing lambda object, and returning the result.
+      whitelist
+         vocabulary
+            date.now
+            date.format
+            format
+            set-name
+            set-value
+            get-value
+            get-name
+            get-count
+            get-nodes
+            add
+            insert-after
+            insert-before
+            math.abs
+            math.add
+            math.ceil
+            math.cos
+            math.decrement
+            math.divide
+            math.floor
+            math.increment
+            math.max
+            math.min
+            math.modulo
+            math.multiply
+            math.random
+            math.round
+            math.sin
+            math.sqrt
+            math.subtract
+            strings.builder
+            strings.builder.append
+            strings.capitalize
+            strings.concat
+            strings.contains
+            strings.ends-with
+            strings.html-decode
+            strings.html-encode
+            strings.join
+            strings.length
+            strings.matches
+            strings.regex-replace
+            strings.replace
+            strings.replace-not-of
+            strings.split
+            strings.starts-with
+            strings.substring
+            strings.to-lower
+            strings.to-upper
+            strings.trim
+            strings.trim-end
+            strings.trim-start
+            strings.url-decode
+            strings.url-encode
+            response.headers.set
+            response.status.set
+            for-each
+            if
+            else-if
+            else
+            return
+            return-nodes
+            yield
+            vocabulary
+            html2lambda
+            html2markdown
+            lambda2html
+            markdown2html
+            xml2lambda
+            lambda2xml
+            json2lambda
+            lambda2json
+            http.get
+            and
+            or
+            eq
+            neq
+            not
+            mt
+            lt
+            mte
+            lte
+            get-name
+            null
+            not-null
+            exists
+            not-exists
+            unwrap
+            convert
+         .lambda
+      if
+         not-null:x:@whitelist
+         .lambda
+            return:x:@whitelist
+      return-nodes:x:@whitelist/*
 
 .catch
    throw:I am sorry but I cannot do that Dave
