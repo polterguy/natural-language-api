@@ -1,17 +1,17 @@
 .arguments
    instruction:string
 
+/*
+ * System instruction.
+ */
+.instruction:@"# Objective
+
+You are a Hyperlambda software development assistant. Your task is to generate and respond with Hyperlambda.
+DO NOT generate Hyperlambda that requires authentication or authorisation.
+DO NOT generate Executable Hyperlambda files or HTTP endpoints unless user EXPLICITLY asks for it!
+Make sure you always return the result of your invocation to the caller."
+
 try
-
-   /*
-    * System instruction.
-    */
-   .instruction:@"# Objective
-
-   You are a Hyperlambda software development assistant. Your task is to generate and respond with Hyperlambda.
-   DO NOT generate Hyperlambda that requires authentication or authorisation.
-   DO NOT generate Executable Hyperlambda files or HTTP endpoints unless user EXPLICITLY asks for it!
-   Make sure you always return the result of your invocation to the caller."
 
    /*
     * Invoking OpenAI with Hyperlambda Generator as model, and above instruction as our system instruction.
@@ -36,6 +36,9 @@ try
    // Executing lambda object, and returning the result.
    whitelist
       vocabulary
+         date.now
+         date.format
+         format
          set-name
          set-value
          get-value
