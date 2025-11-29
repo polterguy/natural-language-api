@@ -11,6 +11,8 @@ DO NOT generate Hyperlambda that requires authentication or authorisation.
 DO NOT generate Executable Hyperlambda files or HTTP endpoints unless user EXPLICITLY asks for it!
 Make sure you always return the result of your invocation to the caller."
 
+// Helper to log exception
+.code
 try
 
    /*
@@ -28,6 +30,8 @@ try
 
    // Transforming result to a lambda object.
    hyper2lambda:x:@execute/*/answer
+   set-value:x:@.code
+      get-value:x:@execute/*/answer
 
    // Checking if user is root, at which point we just execute "whatever".
    if
@@ -162,6 +166,9 @@ try
       return-nodes:x:@whitelist/*
 
 .catch
+   log.error:Could not generate code
+      exception:x:@.arguments/*/message
+      code:x:@.code
    throw:I am sorry but I cannot do that Dave
       public:bool:true
       status:int:400
