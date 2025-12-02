@@ -1,0 +1,1 @@
+alter table requests drop column execution_count;

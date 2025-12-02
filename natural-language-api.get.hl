@@ -27,32 +27,25 @@ Rules;
  */
 .onafter
 
-   // Avoiding race conditions
-   semaphore:natural-language-api-lock
+   // Connecting to database.
+   data.connect:natural-language-api
 
-      // Connecting to database.
-      data.connect:natural-language-api
+      // Checking if we've already got this request in our database
+      data.read
+         table:requests
+         where
+            and
+               prompt.eq:x:@.arguments/*/prompt
+      if
+         not-exists:x:@data.read/*
+         .lambda
 
-         // Checking if we've already got this request in our database
-         data.read
-            table:requests
-            where
-               and
-                  prompt.eq:x:@.arguments/*/prompt
-         if
-            exists:x:@data.read/*
-            .lambda
-
-               // Incrementing count.
-               math.increment:x:@data.read/*/*/execution_count
-               data.update
-                  table:requests
-                  values
-                     execution_count:x:@math.increment
-
-         else
-
-            // Creating a unique filename.
+            /*
+             * Creating a unique filename.
+             *
+             * Notice, to make it easier to see the code, and edit it,
+             * we've chosen to store the actual Hyperlambda in a physical file on disc.
+             */
             crypto.random
                min:15
                max:16
