@@ -31,7 +31,7 @@ Rules;
     * Creating a unique filename.
     *
     * Notice, to make it easier to see the code, and edit it,
-    * we've chosen to store the actual Hyperlambda in a physical file on disc.
+    * we've chosen to store the actual Hyperlambda code in a physical file on disc.
     */
    strings.to-lower:x:@.arguments/*/prompt
    crypto.hash.sha256:x:-
@@ -43,7 +43,7 @@ Rules;
          .:.hl
 
    // Making sure we use prompt as comment.
-   hyper2lambda:x:@.arguments/*/code
+   hyper2lambda:x:@.arguments/*/code_file
    unwrap:x:+/*/*
    insert-before:x:@hyper2lambda/0
       .
@@ -61,11 +61,11 @@ Rules;
          table:requests
          values
             prompt:x:@.arguments/*/prompt
-            result_file:x:@.path
+            code_file:x:@.path
             is_error:x:@.arguments/*/is_error
 
 // Contains the code after generation/cache-lookup.
-.code
+.code_file
 
 // True if code was generated.
 .generated:bool:true
@@ -88,9 +88,12 @@ try
       exists:x:@data.connect/*/data.read/*
       .lambda
 
-         // We've got a cached prompt.
-         set-value:x:@.code
-            io.file.load:x:@data.connect/*/data.read/*/*/result_file
+         /*
+          * This exact prompt has been previously generated,
+          * making sure we use cached version.
+          */
+         set-value:x:@.code_file
+            io.file.load:x:@data.connect/*/data.read/*/*/code_file
          set-value:x:@.generated
             .:bool:false
 
@@ -123,11 +126,11 @@ try
                status:int:400
 
       // Transforming result to a lambda object.
-      set-value:x:@.code
+      set-value:x:@.code_file
          get-value:x:@http.post/*/content/*/result
 
    // Converting code to lambda object
-   hyper2lambda:x:@.code
+   hyper2lambda:x:@.code_file
 
    // Checking if user is root, at which point we just execute "whatever".
    if
@@ -150,7 +153,7 @@ try
                unwrap:x:+/*
                invoke:x:@.onafter
                   prompt:x:@.arguments/*/instruction
-                  code:x:@.code
+                  code_file:x:@.code_file
                   is_error:int:0
 
          // Returning result to caller.
@@ -278,7 +281,7 @@ try
             unwrap:x:+/*
             invoke:x:@.onafter
                prompt:x:@.arguments/*/instruction
-               code:x:@.code
+               code_file:x:@.code_file
                is_error:int:0
 
       // Returning result to caller.
@@ -293,13 +296,13 @@ try
    // Oops ...!!
    log.error:Could not generate code
       exception:x:@.arguments/*/message
-      code:x:@.code
+      code:x:@.code_file
 
    // Storing request in cache.
    unwrap:x:+/*
    invoke:x:@.onafter
       prompt:x:@.arguments/*/instruction
-      code:x:@.code
+      code_file:x:@.code_file
       is_error:int:1
 
    // Throwing exception

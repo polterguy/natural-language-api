@@ -3,10 +3,8 @@
  */
 CREATE TABLE requests(
   request_id integer not null primary key autoincrement,
-  is_error integer not null default 0,
-  result_file text, 
   prompt text not null,
-  execution_count
-  integer not null default 1
+  code_file text not null,
+  is_error integer not null default 0
 );
 
