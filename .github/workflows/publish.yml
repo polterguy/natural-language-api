@@ -56,30 +56,3 @@ jobs:
             "oldName": "/etc/bazar/README.md",
             "newName": "${{ github.event.repository.name }}.md"
             }'
-
-  # Remove this job once we no longer need CI/CD for CSRegs
-  archive-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Remove files  
-        run: rm -rf .git && rm -rf .github && rm -rf .vscode && rm -rf .gitignore rm -rf .DS_Store
-      - name: Archive
-        if: success()
-        uses: vimtor/action-zip@v1
-        with:
-          files: ./
-          dest: archive.zip
-      - name: Deploy
-        if: success()
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: 'https://csregs-team.us.ainiro.io/magic/system/file-system/install-module'
-          method: 'PUT'
-          customHeaders: '{
-            "Content-Type": "multipart/form-data",
-            "Authorization": "Bearer ${{ secrets.CD_TOKEN }}"
-            }'
-          files: '{"file": "/home/runner/work/natural-language-api/natural-language-api/archive.zip"}'
-
