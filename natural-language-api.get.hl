@@ -23,20 +23,15 @@ try
    /*
     * Invoking OpenAI with Hyperlambda Generator as model, and above instruction as our system instruction.
     */
-   execute:magic.workflows.actions.execute
-      name:openai-query
-      filename:/modules/openai/workflows/actions/openai-query.hl
-      arguments
-         model:"ft:gpt-4.1-mini-2025-04-14:ainiro:hl:Chz6Pj4V"
-         max_tokens:int:2500
-         temperature:decimal:0.0
-         query:x:@.arguments/*/instruction
-         instruction:x:@.sys
+   http.post:"https://ainiro.io/magic/modules/hyperlambda-generator/chat"
+      payload
+         prompt:x:@.arguments/*/instruction
+         system_message_override:x:@.sys
 
    // Transforming result to a lambda object.
-   hyper2lambda:x:@execute/*/answer
+   hyper2lambda:x:@http.post/*/content/*/result
    set-value:x:@.code
-      get-value:x:@execute/*/answer
+      get-value:x:@http.post/*/content/*/result
 
    // Checking if user is root, at which point we just execute "whatever".
    if
@@ -77,6 +72,7 @@ try
          vocabulary
             date.now
             date.format
+            time
             format
             set-name
             set-value
