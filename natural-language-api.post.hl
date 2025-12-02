@@ -296,14 +296,6 @@ try
    // Oops ...!!
    log.error:Could not generate code
       exception:x:@.arguments/*/message
-      code:x:@.code_file
-
-   // Storing request in cache.
-   unwrap:x:+/*
-   invoke:x:@.onafter
-      prompt:x:@.arguments/*/instruction
-      code_file:x:@.code_file
-      is_error:int:1
 
    // Throwing exception
    throw:"I’m sorry, Dave. I’m afraid I can’t do that."
