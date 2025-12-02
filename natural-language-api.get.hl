@@ -27,58 +27,48 @@ Rules;
  */
 .onafter
 
-   // Connecting to database.
+   /*
+    * Creating a unique filename.
+    *
+    * Notice, to make it easier to see the code, and edit it,
+    * we've chosen to store the actual Hyperlambda in a physical file on disc.
+    */
+   strings.to-lower:x:@.arguments/*/prompt
+   crypto.hash.sha256:x:-
+   .path
+   set-value:x:@.path
+      strings.concat
+         .:"/modules/natural-language-api/cache/hl-"
+         get-value:x:@crypto.hash.sha256
+         .:.hl
+
+   // Making sure we use prompt as comment.
+   hyper2lambda:x:@.arguments/*/code
+   unwrap:x:+/*/*
+   insert-before:x:@hyper2lambda/0
+      .
+         ..:x:@.arguments/*/prompt
+   lambda2hyper:x:@hyper2lambda/*
+      comments:true
+
+   // Saving result to cache file.
+   io.file.save:x:@.path
+      get-value:x:@lambda2hyper
+
+   // Creating database entry for cached item.
    data.connect:natural-language-api
-
-      // Checking if we've already got this request in our database
-      data.read
+      data.create
          table:requests
-         where
-            and
-               prompt.eq:x:@.arguments/*/prompt
-      if
-         not-exists:x:@data.read/*
-         .lambda
-
-            /*
-             * Creating a unique filename.
-             *
-             * Notice, to make it easier to see the code, and edit it,
-             * we've chosen to store the actual Hyperlambda in a physical file on disc.
-             */
-            crypto.random
-               min:15
-               max:16
-            .path
-            set-value:x:@.path
-               strings.concat
-                  .:"/modules/natural-language-api/cache/hl-"
-                  get-value:x:@crypto.random
-                  .:.hl
-
-            // Making sure we use prompt as comment.
-            hyper2lambda:x:@.arguments/*/code
-            unwrap:x:+/*/*
-            insert-before:x:@hyper2lambda/0
-               .
-                  ..:x:@.arguments/*/prompt
-            lambda2hyper:x:@hyper2lambda
-               comments:true
-
-            // Saving result to cache file.
-            io.file.save:x:@.path
-               get-value:x:@lambda2hyper
-
-            // Creating database entry for cached item.
-            data.create
-               table:requests
-               values
-                  prompt:x:@.arguments/*/prompt
-                  result_file:x:@.path
-                  is_error:x:@.arguments/*/is_error
+         values
+            prompt:x:@.arguments/*/prompt
+            result_file:x:@.path
+            is_error:x:@.arguments/*/is_error
 
 // Contains the code after generation/cache-lookup.
 .code
+
+// True if code was generated.
+.generated:bool:true
 
 // Making sure we trap exceptions
 try
@@ -101,11 +91,13 @@ try
          // We've got a cached prompt.
          set-value:x:@.code
             io.file.load:x:@data.connect/*/data.read/*/*/result_file
+         set-value:x:@.generated
+            .:bool:false
 
    else
 
       /*
-       * Invoking OpenAI with Hyperlambda Generator as model, and above instruction as our system instruction.
+       * Invoking Hyperlambda Generator.
        */
       http.post:"https://ainiro.io/magic/modules/hyperlambda-generator/chat"
          convert:true
@@ -149,24 +141,24 @@ try
          // Executing lambda object, and returning the result.
          .lambda
          invoke:x:-
+
+         // Storing request in cache.
+         if
+            eq:x:@.generated
+               .:bool:true
+            .lambda
+               unwrap:x:+/*
+               invoke:x:@.onafter
+                  prompt:x:@.arguments/*/instruction
+                  code:x:@.code
+                  is_error:int:0
+
+         // Returning result to caller.
          if
             not-null:x:@invoke
             .lambda
                return:x:@invoke
-
-         // Storing request in cache.
-         unwrap:x:+/*
-         invoke:x:@.onafter
-            prompt:x:@.arguments/*/instruction
-            code:x:@.code
-            is_error:int:0
-
-         // Returning result to caller.
-         if
-            not-null:x:@invoke/@invoke
-            .lambda
-               return:x:@invoke/@invoke
-         return-nodes:x:@invoke/@invoke/*
+         return-nodes:x:@invoke/*
 
    else
 
@@ -279,11 +271,15 @@ try
          .lambda
 
       // Storing request in cache.
-      unwrap:x:+/*
-      invoke:x:@.onafter
-         prompt:x:@.arguments/*/instruction
-         code:x:@.code
-         is_error:int:0
+      if
+         eq:x:@.generated
+            .:bool:true
+         .lambda
+            unwrap:x:+/*
+            invoke:x:@.onafter
+               prompt:x:@.arguments/*/instruction
+               code:x:@.code
+               is_error:int:0
 
       // Returning result to caller.
       if
