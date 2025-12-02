@@ -56,9 +56,18 @@ Rules;
                   get-value:x:@crypto.random
                   .:.hl
 
+            // Making sure we use prompt as comment.
+            hyper2lambda:x:@.arguments/*/code
+            unwrap:x:+/*/*
+            insert-before:x:@hyper2lambda/0
+               .
+                  ..:x:@.arguments/*/prompt
+            lambda2hyper:x:@hyper2lambda
+               comments:true
+
             // Saving result to cache file.
             io.file.save:x:@.path
-               get-value:x:@.arguments/*/code
+               get-value:x:@lambda2hyper
 
             // Creating database entry for cached item.
             data.create
