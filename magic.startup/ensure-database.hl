@@ -8,3 +8,8 @@
 signal:magic.modules.ensure-database
    module:natural-language-api
    database:natural-language-api
+
+// Deleting all old records since code files probably don't exists anymore.
+data.connect:natural-language-api
+   data.delete
+      table:requests
