@@ -24,6 +24,7 @@ try
     * Invoking OpenAI with Hyperlambda Generator as model, and above instruction as our system instruction.
     */
    http.post:"https://ainiro.io/magic/modules/hyperlambda-generator/chat"
+      convert:true
       payload
          prompt:x:@.arguments/*/instruction
          system_message_override:x:@.sys
@@ -170,6 +171,6 @@ try
    log.error:Could not generate code
       exception:x:@.arguments/*/message
       code:x:@.code
-   throw:I am sorry but I cannot do that Dave
+   throw:"I’m sorry, Dave. I’m afraid I can’t do that."
       public:bool:true
       status:int:400
