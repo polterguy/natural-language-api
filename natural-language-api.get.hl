@@ -16,23 +16,122 @@ DO NOT generate Hyperlambda that requires authentication or authorisation.
 DO NOT generate Executable Hyperlambda files or HTTP endpoints unless user EXPLICITLY asks for it!
 Make sure you always return the result of your invocation to the caller."
 
-// Helper to log exception
+/*
+ * Helper lambda object to store request after execution
+ *
+ * This lambda object is executed after execution of code,
+ * to cache and store the code and prompt, such that we can retrieve
+ * the cached version later.
+ */
+.onafter
+
+   // Connecting to database.
+   data.connect:natural-language-api
+
+      // Avoiding race conditions
+      semaphore:natural-language-api-lock
+
+         // Checking if we've already got this request in our database
+         data.read
+            table:requests
+            where
+               and
+                  prompt.eq:x:@.arguments/*/prompt
+         if
+            exists:x:@data.read/*
+            .lambda
+
+               // Incrementing count.
+               math.increment:x:@data.read/*/*/execution_count
+               data.update
+                  table:requests
+                  values
+                     execution_count:x:@math.increment
+
+         else
+
+            // Creating a unique filename.
+            crypto.random
+               min:15
+               max:16
+            .path
+            set-value:x:@.path
+               strings.concat
+                  .:"/modules/natural-language-api/cache/hl-"
+                  get-value:x:@crypto.random
+                  .:.hl
+
+            // Saving result to cache file.
+            io.file.save:x:@.path
+               get-value:x:@.arguments/*/code
+
+            // Creating database entry for cached item.
+            data.create
+               table:requests
+               values
+                  prompt:x:@.arguments/*/prompt
+                  result_file:x:@.path
+                  is_error:x:@.arguments/*/is_error
+
+// Contains the code after generation/cache-lookup.
 .code
+
+// Making sure we trap exceptions
 try
 
    /*
-    * Invoking OpenAI with Hyperlambda Generator as model, and above instruction as our system instruction.
+    * Checking cached file to see if this is a previously generated invocation.
     */
-   http.post:"https://ainiro.io/magic/modules/hyperlambda-generator/chat"
-      convert:true
-      payload
-         prompt:x:@.arguments/*/instruction
-         system_message_override:x:@.sys
+   data.connect:natural-language-api
+      data.read
+         table:requests
+         where
+            and
+               prompt.eq:x:@.arguments/*/instruction
 
-   // Transforming result to a lambda object.
-   hyper2lambda:x:@http.post/*/content/*/result
-   set-value:x:@.code
-      get-value:x:@http.post/*/content/*/result
+   // Checking if above invocation returned a result.
+   if
+      exists:x:@data.connect/*/data.read/*
+      .lambda
+
+         // We've got a cached prompt.
+         set-value:x:@.code
+            io.file.load:x:@data.connect/*/data.read/*/*/result_file
+
+   else
+
+      /*
+       * Invoking OpenAI with Hyperlambda Generator as model, and above instruction as our system instruction.
+       */
+      http.post:"https://ainiro.io/magic/modules/hyperlambda-generator/chat"
+         convert:true
+         payload
+            prompt:x:@.arguments/*/instruction
+            system_message_override:x:@.sys
+
+      // Sanity checking invocation
+      if
+         and
+            not
+               mte:x:@http.post
+                  .:int:200
+            not
+               lt:x:@http.post
+                  .:int:300
+         .lambda
+
+            // Something went wrong
+            lambda2hyper:x:@http.post
+            throw:x:-
+               public:bool:true
+               status:int:400
+
+      // Transforming result to a lambda object.
+      set-value:x:@.code
+         get-value:x:@http.post/*/content/*/result
+
+   // Converting code to lambda object
+   hyper2lambda:x:@.code
 
    // Checking if user is root, at which point we just execute "whatever".
    if
@@ -50,7 +149,20 @@ try
             not-null:x:@invoke
             .lambda
                return:x:@invoke
-         return-nodes:x:@invoke/*
+
+         // Storing request in cache.
+         unwrap:x:+/*
+         invoke:x:@.onafter
+            prompt:x:@.arguments/*/instruction
+            code:x:@.code
+            is_error:int:0
+
+         // Returning result to caller.
+         if
+            not-null:x:@invoke/@invoke
+            .lambda
+               return:x:@invoke/@invoke
+         return-nodes:x:@invoke/@invoke/*
 
    else
 
@@ -161,6 +273,15 @@ try
             unwrap
             convert
          .lambda
+
+      // Storing request in cache.
+      unwrap:x:+/*
+      invoke:x:@.onafter
+         prompt:x:@.arguments/*/instruction
+         code:x:@.code
+         is_error:int:0
+
+      // Returning result to caller.
       if
          not-null:x:@whitelist
          .lambda
@@ -168,9 +289,20 @@ try
       return-nodes:x:@whitelist/*
 
 .catch
+
+   // Oops ...!!
    log.error:Could not generate code
       exception:x:@.arguments/*/message
       code:x:@.code
+
+   // Storing request in cache.
+   unwrap:x:+/*
+   invoke:x:@.onafter
+      prompt:x:@.arguments/*/instruction
+      code:x:@.code
+      is_error:int:1
+
+   // Throwing exception
    throw:"I’m sorry, Dave. I’m afraid I can’t do that."
       public:bool:true
       status:int:400
