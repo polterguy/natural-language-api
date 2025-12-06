@@ -271,6 +271,8 @@ try
             not-exists
             unwrap
             convert
+            switch
+            case
          .lambda
 
       // Storing request in cache.
