@@ -182,25 +182,130 @@ try
       // Executing lambda object, and returning the result.
       whitelist
          vocabulary
-            date.now
-            date.format
-            time
-            format
-            set-name
-            set-value
-            get-value
-            get-name
-            get-count
-            get-nodes
             add
+            and
+            apply
+            case
+            compose
+            convert
+            csv2lambda
+            default
+            else
+            else-if
+            eq
+            exists
+            floatArray2bytes
+            for-each
+            fork
+            format
+            get-count
+            get-first-value
+            get-name
+            get-nodes
+            get-value
+            html-decode
+            html2lambda
+            html2markdown
+            html2pdf
+            hyper2lambda
+            if
+            include
             insert-after
             insert-before
+            int2words
+            join
+            json2lambda
+            json2yaml
+            lambda2csv
+            lambda2html
+            lambda2hyper
+            lambda2json
+            lambda2xml
+            lambda2yaml
+            lt
+            lte
+            markdown2html
+            mt
+            mte
+            neq
+            not
+            not-exists
+            not-null
+            null
+            or
+            pdf2text
+            reference
+            remove-nodes
+            return
+            return-nodes
+            return-value
+            semaphore
+            set-name
+            set-value
+            set-x
+            sleep
+            sort
+            switch
+            throw
+            time
+            try
+            type
+            types
+            unwrap
+            version
+            vocabulary
+            while
+            xml2lambda
+            yaml2json
+            yaml2lambda
+            yield
+            auth.ticket.get
+            auth.ticket.in-role
+            auth.ticket.verify
+            auth.token.verify
+            cache.count
+            crypto.aes.decrypt
+            crypto.aes.encrypt
+            crypto.decrypt
+            crypto.encrypt
+            crypto.fingerprint
+            crypto.get-key
+            crypto.hash
+            crypto.hash.md5
+            crypto.hash.sha1
+            crypto.hash.sha256
+            crypto.hash.sha384
+            crypto.hash.sha512
+            crypto.password.hash
+            crypto.password.verify
+            crypto.random
+            crypto.random.int
+            crypto.rsa.create-key
+            crypto.rsa.decrypt
+            crypto.rsa.encrypt
+            crypto.rsa.sign
+            crypto.rsa.verify
+            crypto.seed
+            crypto.sign
+            crypto.verify
+            date.format
+            date.from-unix
+            date.max
+            date.min
+            date.now
+            date.unix
+            endpoints.list
+            guid.new
+            http.delete
+            http.get
+            image.generate-qr
             math.abs
             math.add
             math.ceil
             math.cos
             math.decrement
             math.divide
+            math.dot
             math.floor
             math.increment
             math.max
@@ -212,8 +317,26 @@ try
             math.sin
             math.sqrt
             math.subtract
+            mime.create
+            mime.parse
+            openai.tokenize
+            request.cookies.get
+            request.cookies.list
+            request.headers.get
+            request.headers.list
+            request.host
+            request.ip
+            request.scheme
+            request.url
+            request.verb
+            response.cookies.set
+            response.headers.set
+            response.status.set
+            server.ip
+            slots.vocabulary
             strings.builder
             strings.builder.append
+            strings.byte-count
             strings.capitalize
             strings.concat
             strings.contains
@@ -223,6 +346,7 @@ try
             strings.join
             strings.length
             strings.matches
+            strings.mixin
             strings.regex-replace
             strings.replace
             strings.replace-not-of
@@ -236,43 +360,18 @@ try
             strings.trim-start
             strings.url-decode
             strings.url-encode
-            response.headers.set
-            response.status.set
-            for-each
-            if
-            else-if
-            else
-            return
-            return-nodes
-            yield
-            vocabulary
-            html2lambda
-            html2markdown
-            lambda2html
-            markdown2html
-            xml2lambda
-            lambda2xml
-            json2lambda
-            lambda2json
-            http.get
-            and
-            or
-            eq
-            neq
-            not
-            mt
-            lt
-            mte
-            lte
-            get-name
-            null
-            not-null
-            exists
-            not-exists
-            unwrap
-            convert
-            switch
-            case
+            time.format
+            time.total-milliseconds
+            validators.date
+            validators.default
+            validators.email
+            validators.enum
+            validators.integer
+            validators.mandatory
+            validators.recaptcha
+            validators.regex
+            validators.string
+            validators.url
          .lambda
 
       // Storing request in cache.
